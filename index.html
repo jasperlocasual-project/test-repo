@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tetris</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #1a1a2e;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: 'Courier New', monospace;
+      color: #eee;
+    }
+
+    .container {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+    }
+
+    canvas {
+      border: 2px solid #444;
+      background: #0f0f23;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      width: 120px;
+    }
+
+    .sidebar h1 {
+      font-size: 1.4rem;
+      color: #e94560;
+      letter-spacing: 2px;
+    }
+
+    .box {
+      background: #0f0f23;
+      border: 2px solid #444;
+      padding: 10px;
+    }
+
+    .box label {
+      font-size: 0.7rem;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .box p {
+      font-size: 1.4rem;
+      color: #fff;
+      margin-top: 4px;
+    }
+
+    #next-canvas {
+      border: none;
+      background: transparent;
+    }
+
+    .controls {
+      font-size: 0.65rem;
+      color: #666;
+      line-height: 1.8;
+    }
+
+    #message {
+      font-size: 0.8rem;
+      color: #e94560;
+      min-height: 1.2em;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <canvas id="board" width="300" height="600"></canvas>
+  <div class="sidebar">
+    <h1>TETRIS</h1>
+    <div class="box">
+      <label>Score</label>
+      <p id="score">0</p>
+    </div>
+    <div class="box">
+      <label>Lines</label>
+      <p id="lines">0</p>
+    </div>
+    <div class="box">
+      <label>Level</label>
+      <p id="level">1</p>
+    </div>
+    <div class="box">
+      <label>Next</label>
+      <canvas id="next-canvas" width="100" height="100"></canvas>
+    </div>
+    <div class="controls">
+      ← → Move<br>
+      ↑ Rotate<br>
+      ↓ Soft drop<br>
+      Space Hard drop<br>
+      P Pause
+    </div>
+    <p id="message"></p>
+  </div>
+</div>
+<script src="tetris.js"></script>
+</body>
+</html>
