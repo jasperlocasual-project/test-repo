@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Jump Scared</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #111;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-family: 'Georgia', serif;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .hint {
+      color: #555;
+      font-size: 0.9rem;
+      margin-bottom: 40px;
+      letter-spacing: 2px;
+    }
+
+    #box {
+      width: 160px;
+      height: 160px;
+      background: linear-gradient(145deg, #2a2a2a, #1a1a1a);
+      border: 2px solid #333;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.1s, border-color 0.3s;
+      box-shadow: 0 0 30px rgba(0,0,0,0.8);
+    }
+
+    #box:hover {
+      transform: scale(1.04);
+      border-color: #555;
+    }
+
+    #box:active {
+      transform: scale(0.97);
+    }
+
+    #box .icon {
+      font-size: 3rem;
+      margin-bottom: 10px;
+    }
+
+    #box .label {
+      color: #777;
+      font-size: 0.8rem;
+      letter-spacing: 1px;
+    }
+
+    /* ── Jumpscare overlay ── */
+    #scare {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 100;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    #scare.active {
+      display: flex;
+    }
+
+    #scare.shake {
+      animation: shake 0.35s ease-out;
+    }
+
+    @keyframes shake {
+      0%   { transform: translate(0, 0) rotate(0deg); }
+      10%  { transform: translate(-18px, -14px) rotate(-2deg); }
+      20%  { transform: translate(18px, 12px) rotate(2deg); }
+      30%  { transform: translate(-14px, 16px) rotate(-1deg); }
+      40%  { transform: translate(14px, -12px) rotate(1.5deg); }
+      50%  { transform: translate(-10px, 10px) rotate(-1deg); }
+      60%  { transform: translate(10px, -8px) rotate(0.5deg); }
+      70%  { transform: translate(-6px, 6px) rotate(-0.3deg); }
+      80%  { transform: translate(6px, -4px) rotate(0.2deg); }
+      90%  { transform: translate(-3px, 3px) rotate(0deg); }
+      100% { transform: translate(0, 0) rotate(0deg); }
+    }
+
+    #flash {
+      position: fixed;
+      inset: 0;
+      background: #fff;
+      z-index: 99;
+      pointer-events: none;
+      opacity: 0;
+      animation: none;
+    }
+
+    #flash.pop {
+      animation: flashOut 0.25s ease-out forwards;
+    }
+
+    @keyframes flashOut {
+      0%   { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
+    /* ── Scary face (SVG-based) ── */
+    #face {
+      width: min(90vw, 90vh);
+      height: min(90vw, 90vh);
+      animation: faceIn 0.08s ease-out;
+    }
+
+    @keyframes faceIn {
+      0%   { transform: scale(0.4); opacity: 0; }
+      60%  { transform: scale(1.08); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    #restart-hint {
+      position: fixed;
+      bottom: 24px;
+      color: #333;
+      font-size: 0.75rem;
+      letter-spacing: 2px;
+      z-index: 101;
+    }
+  </style>
+</head>
+<body>
+
+  <p class="hint">something is inside...</p>
+
+  <div id="box">
+    <div class="icon">📦</div>
+    <div class="label">open me</div>
+  </div>
+
+  <!-- White flash layer -->
+  <div id="flash"></div>
+
+  <!-- Jumpscare overlay -->
+  <div id="scare">
+    <svg id="face" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+      <!-- Head -->
+      <ellipse cx="100" cy="105" rx="88" ry="92" fill="#c8a96e"/>
+      <!-- Dark veins -->
+      <path d="M60 40 Q55 60 65 80" stroke="#7a5c2e" stroke-width="1.5" fill="none" opacity="0.5"/>
+      <path d="M140 38 Q148 58 138 78" stroke="#7a5c2e" stroke-width="1.5" fill="none" opacity="0.5"/>
+      <path d="M100 18 Q95 35 100 55" stroke="#7a5c2e" stroke-width="1.2" fill="none" opacity="0.4"/>
+      <!-- Eye sockets -->
+      <ellipse cx="68" cy="85" rx="24" ry="26" fill="#1a0a00"/>
+      <ellipse cx="132" cy="85" rx="24" ry="26" fill="#1a0a00"/>
+      <!-- Bloodshot whites -->
+      <ellipse cx="68" cy="85" rx="18" ry="20" fill="#f5e8d0"/>
+      <ellipse cx="132" cy="85" rx="18" ry="20" fill="#f5e8d0"/>
+      <!-- Blood vessels -->
+      <path d="M55 80 Q62 84 68 85" stroke="#cc0000" stroke-width="0.8" fill="none"/>
+      <path d="M58 90 Q63 88 68 85" stroke="#cc0000" stroke-width="0.7" fill="none"/>
+      <path d="M181 80 Q174 84 132 85" stroke="#cc0000" stroke-width="0.8" fill="none"/>
+      <path d="M178 90 Q172 88 132 85" stroke="#cc0000" stroke-width="0.7" fill="none"/>
+      <!-- Pupils (dilated) -->
+      <ellipse cx="68" cy="85" rx="11" ry="13" fill="#050200"/>
+      <ellipse cx="132" cy="85" rx="11" ry="13" fill="#050200"/>
+      <!-- Eye shine -->
+      <ellipse cx="63" cy="79" rx="3" ry="3.5" fill="rgba(255,255,255,0.25)"/>
+      <ellipse cx="127" cy="79" rx="3" ry="3.5" fill="rgba(255,255,255,0.25)"/>
+      <!-- Nose -->
+      <path d="M95 110 Q100 100 105 110 Q100 118 95 110Z" fill="#9a7040"/>
+      <ellipse cx="93" cy="113" rx="5" ry="4" fill="#3a2010"/>
+      <ellipse cx="107" cy="113" rx="5" ry="4" fill="#3a2010"/>
+      <!-- Mouth — wide grin -->
+      <path d="M38 148 Q100 200 162 148" fill="#1a0000" stroke="#1a0000" stroke-width="2"/>
+      <!-- Teeth -->
+      <rect x="55"  y="152" width="14" height="20" rx="2" fill="#e8ddc8"/>
+      <rect x="72"  y="154" width="14" height="22" rx="2" fill="#e8ddc8"/>
+      <rect x="89"  y="155" width="14" height="24" rx="2" fill="#e8ddc8"/>
+      <rect x="107" y="154" width="14" height="22" rx="2" fill="#e8ddc8"/>
+      <rect x="124" y="152" width="14" height="20" rx="2" fill="#e8ddc8"/>
+      <!-- Lower teeth -->
+      <rect x="62"  y="170" width="11" height="14" rx="2" fill="#d4c8b0"/>
+      <rect x="78"  y="172" width="11" height="12" rx="2" fill="#d4c8b0"/>
+      <rect x="95"  y="173" width="11" height="12" rx="2" fill="#d4c8b0"/>
+      <rect x="113" y="172" width="11" height="12" rx="2" fill="#d4c8b0"/>
+      <!-- Tongue -->
+      <ellipse cx="100" cy="182" rx="18" ry="10" fill="#cc2233"/>
+      <!-- Eyebrows — angry V -->
+      <path d="M44 62 Q58 54 78 68" stroke="#3a2505" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <path d="M156 62 Q142 54 122 68" stroke="#3a2505" stroke-width="5" stroke-linecap="round" fill="none"/>
+      <!-- Forehead wrinkles -->
+      <path d="M80 52 Q100 46 120 52" stroke="#9a7040" stroke-width="1.5" fill="none" opacity="0.6"/>
+      <path d="M85 44 Q100 39 115 44" stroke="#9a7040" stroke-width="1" fill="none" opacity="0.4"/>
+      <!-- Scar -->
+      <path d="M130 30 Q135 50 128 70" stroke="#8b3a3a" stroke-width="2" fill="none"/>
+    </svg>
+    <p id="restart-hint">click anywhere to close</p>
+  </div>
+
+  <script src="jump_scared.js"></script>
+</body>
+</html>
