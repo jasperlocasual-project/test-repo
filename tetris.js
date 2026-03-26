@@ -31,13 +31,15 @@ const canvas = document.getElementById('board');
 const ctx = canvas.getContext('2d');
 const nextCanvas = document.getElementById('next-canvas');
 const nextCtx = nextCanvas.getContext('2d');
+const holdCanvas = document.getElementById('hold-canvas');
+const holdCtx = holdCanvas.getContext('2d');
 
 const scoreEl = document.getElementById('score');
 const linesEl = document.getElementById('lines');
 const levelEl = document.getElementById('level');
 const messageEl = document.getElementById('message');
 
-let board, piece, nextPiece, score, lines, level, gameOver, paused, animId, dropTimer, lastTime;
+let board, piece, nextPiece, holdPiece, canHold, score, lines, level, gameOver, paused, animId, dropTimer, lastTime;
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
@@ -84,8 +86,48 @@ function lock() {
   clearLines();
   piece = nextPiece;
   nextPiece = randomPiece();
+  canHold = true;
   if (!isValid(piece.shape, piece.x, piece.y)) { endGame(); return; }
   drawNext();
+}
+
+function hold() {
+  if (!canHold) return;
+  canHold = false;
+  const id = piece.id;
+  if (holdPiece) {
+    // Swap current piece with held piece
+    piece = {
+      id: holdPiece,
+      shape: SHAPES[holdPiece].map(row => [...row]),
+      x: Math.floor(COLS / 2) - Math.floor(SHAPES[holdPiece][0].length / 2),
+      y: 0,
+    };
+  } else {
+    // No held piece yet — take next piece
+    piece = nextPiece;
+    nextPiece = randomPiece();
+    drawNext();
+  }
+  holdPiece = id;
+  drawHold();
+  draw();
+}
+
+function drawHold() {
+  holdCtx.clearRect(0, 0, holdCanvas.width, holdCanvas.height);
+  if (!holdPiece) return;
+  const s = SHAPES[holdPiece];
+  const offX = Math.floor((holdCanvas.width / BLOCK - s[0].length) / 2);
+  const offY = Math.floor((holdCanvas.height / BLOCK - s.length) / 2);
+  holdCtx.globalAlpha = canHold ? 1 : 0.4;
+  for (let r = 0; r < s.length; r++)
+    for (let c = 0; c < s[r].length; c++)
+      if (s[r][c]) {
+        holdCtx.fillStyle = COLORS[s[r][c]];
+        holdCtx.fillRect((offX + c) * BLOCK + 1, (offY + r) * BLOCK + 1, BLOCK - 2, BLOCK - 2);
+      }
+  holdCtx.globalAlpha = 1;
 }
 
 function clearLines() {
@@ -212,6 +254,8 @@ function init() {
   nextPiece = randomPiece();
   score = lines = 0;
   level = 1;
+  holdPiece = null;
+  canHold = true;
   gameOver = paused = false;
   dropTimer = 0;
   lastTime = 0;
@@ -220,6 +264,7 @@ function init() {
   levelEl.textContent = 1;
   messageEl.textContent = '';
   drawNext();
+  drawHold();
   cancelAnimationFrame(animId);
   animId = requestAnimationFrame(loop);
 }
@@ -255,6 +300,9 @@ document.addEventListener('keydown', e => {
     case 'Space':
       e.preventDefault();
       hardDrop();
+      break;
+    case 'KeyC':
+      hold();
       break;
   }
   draw();
