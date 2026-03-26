@@ -40,6 +40,8 @@ const levelEl = document.getElementById('level');
 const messageEl = document.getElementById('message');
 
 let board, piece, nextPiece, holdPiece, canHold, score, lines, level, gameOver, paused, animId, dropTimer, lastTime;
+let shake = 0;
+let impactCells = [];
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
@@ -152,6 +154,12 @@ function clearLines() {
 
 function hardDrop() {
   while (isValid(piece.shape, piece.x, piece.y + 1)) piece.y++;
+  // Record landing cells for flash effect
+  for (let r = 0; r < piece.shape.length; r++)
+    for (let c = 0; c < piece.shape[r].length; c++)
+      if (piece.shape[r][c])
+        impactCells.push({ x: piece.x + c, y: piece.y + r, alpha: 1 });
+  shake = 10;
   lock();
 }
 
@@ -169,6 +177,18 @@ function ghostY() {
   let gy = piece.y;
   while (isValid(piece.shape, piece.x, gy + 1)) gy++;
   return gy;
+}
+
+function applyShake() {
+  if (shake > 0.5) {
+    const dx = (Math.random() - 0.5) * shake;
+    const dy = Math.random() * shake * 0.5; // bias downward for impact feel
+    canvas.style.transform = `translate(${dx}px, ${dy}px)`;
+    shake *= 0.72;
+  } else {
+    shake = 0;
+    canvas.style.transform = '';
+  }
 }
 
 function draw() {
@@ -203,6 +223,19 @@ function draw() {
     for (let c = 0; c < piece.shape[r].length; c++)
       if (piece.shape[r][c])
         drawBlock(ctx, piece.x + c, piece.y + r, piece.shape[r][c]);
+
+  // Impact flash — white overlay fading out on landing cells
+  for (let i = impactCells.length - 1; i >= 0; i--) {
+    const cell = impactCells[i];
+    ctx.globalAlpha = cell.alpha;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(cell.x * BLOCK + 1, cell.y * BLOCK + 1, BLOCK - 2, BLOCK - 2);
+    ctx.globalAlpha = 1;
+    cell.alpha -= 0.07;
+    if (cell.alpha <= 0) impactCells.splice(i, 1);
+  }
+
+  applyShake();
 }
 
 function drawNext() {
@@ -256,6 +289,9 @@ function init() {
   level = 1;
   holdPiece = null;
   canHold = true;
+  shake = 0;
+  impactCells = [];
+  canvas.style.transform = '';
   gameOver = paused = false;
   dropTimer = 0;
   lastTime = 0;
